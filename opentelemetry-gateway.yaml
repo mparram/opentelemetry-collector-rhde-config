@@ -23,7 +23,7 @@ data:
         timeout: 10s
     exporters:
       otlp/host:
-        endpoint: localhost:4317
+        endpoint: 10.44.0.0:4317
         tls:
           insecure: true
           insecure_skip_verify: true
@@ -42,25 +42,6 @@ data:
           processors: [batch]
           exporters: [otlp/host]
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: opentelemetry-gateway
-  namespace: observability
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: hostnetwork-v2-scc-opentelemetry-gateway
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:openshift:scc:hostnetwork-v2
-subjects:
-- kind: ServiceAccount
-  name: opentelemetry-gateway
-  namespace: observability
----
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -78,9 +59,6 @@ spec:
         app: opentelemetry-gateway
     spec:
       # NOTE: Use port 54317 and 54318 to avoid a conflict with the collector on the host.
-      serviceAccount: opentelemetry-gateway
-      serviceAccountName: opentelemetry-gateway
-      hostNetwork: true
       nodeSelector:
         kubernetes.io/os: linux
       containers:
